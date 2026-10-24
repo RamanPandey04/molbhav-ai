@@ -2,7 +2,8 @@
 
 ## Release status
 Not ready for a verified public submission. The recovered Next.js demo runs in
-the Replit development preview, but Supabase credentials are missing. No public
+the Replit development preview. Supabase API access works, but database
+administration is blocked by an invalid database password. No public
 deployment currently exists. Do not submit the development preview as a
 published production URL.
 
@@ -17,9 +18,9 @@ published production URL.
   role provisioning, human approvals, or payment providers.
 
 ## HTTP checks through Replit's shared proxy
-- `GET /api/health`: 200, `status: degraded`, `databaseConfigured: false`.
-- `GET /api/products`: 503, `DB_NOT_CONFIGURED`.
-- `POST /api/demands`: 503, `DB_NOT_CONFIGURED`.
+- `GET /api/health`: 200, `status: ready`, `databaseConfigured: true`.
+  This reports configuration presence, not schema readiness.
+- `GET /api/products`: `DB_ERROR`; the products table is unavailable.
 - `GET /api/pools/not-a-uuid`: 400, `INVALID_ID`.
 - Homepage and sampled Next.js JavaScript assets: 200.
 
@@ -35,8 +36,17 @@ published production URL.
   `POST /api/proposals/:id/approve`, `POST /api/proposals/:id/reject`.
 
 ## Cloud and migration status
-The existing Molbhav Supabase project has not been connected in this workspace.
-No cloud migrations or database writes have been performed.
+The existing Molbhav Supabase project responds to authenticated API requests.
+Its administrative Auth API returned 200. REST requests for products,
+actor profiles, and pool evaluations returned PGRST205 (tables absent from
+the API schema cache). A direct SQL inspection is still required to determine
+the complete database and migration state.
+
+The supplied connection URI retained a password placeholder. A subsequently
+supplied password value was an API key rather than a database password, and
+PostgreSQL rejected authentication (28P01). A personal access token was
+requested as an alternative but not supplied. No cloud migrations, provisioning,
+or database writes have been performed, and no reset was attempted.
 
 Source review found RLS policies, role checks, security-definer functions with
 fixed search paths, immutable proposal terms/hash checks, participant checks,
@@ -75,6 +85,6 @@ Confirm the target project and migration history before any application.
 9. Publish only after the cloud-backed flow passes; verify the real HTTPS URL.
 
 ## Current blockers
-Supabase URL/public key, server-side administrative access for TEST actor
-provisioning, database connection for migration-history review, cloud-backed
-end-to-end verification, publishing, and final verified release push.
+A valid database password or a Supabase personal access token is required for
+migration-history review and application. Cloud-backed end-to-end verification
+and publishing remain blocked. API keys alone cannot authorize SQL migrations.
