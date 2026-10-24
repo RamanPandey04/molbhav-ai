@@ -3,8 +3,11 @@
 ## Release status
 The recovered Next.js demo runs against the existing Molbhav Supabase project.
 The database-backed P0 API flow has passed with authenticated TEST actors.
-Public URL: not available yet; the user must complete Replit's Publish action.
-Do not submit the development preview as a published production URL.
+Public URL: https://molbhav-ai.replit.app
+The public homepage and products endpoint returned 200. A published BUYER
+demand write and its idempotent retry returned 201 and 200 respectively.
+The latest AgenticOrg merge is not published yet: its endpoint returns 404 on
+the current public deployment. Re-publish the updated source to expose it.
 
 ## Source and checks
 - Required source checkpoint: `d132bd07d36d5c2d1a9f516760793504dbc79434`.
@@ -45,6 +48,14 @@ Do not submit the development preview as a published production URL.
 - The active response view exposed a 402px layout overflow; grid/card minimum
   widths and JSON wrapping were corrected afterwards. The signed-in UI for
   the other roles was not browser-tested; their API paths were verified above.
+
+## Published buyer-flow verification
+At `2026-10-24T12:23:38Z`, a real authenticated TEST buyer submitted one unit
+through the public HTTPS API. Demand
+`0fb0ee8a-a6e4-4a60-b1af-5aa62efd6bb4` was persisted (201); retrying the same
+idempotency key returned the same demand (200), without double counting.
+The live public pool then returned quantity 24: the previous 23 plus this unit.
+This was TEST procurement only, not a purchase or payment.
 
 ## Implemented endpoint inventory
 The P0 subset above is cloud-verified; counteroffers and other secondary
@@ -144,7 +155,8 @@ claim that real humans consented to procurement.
 9. Publish only after the cloud-backed flow passes; verify the real HTTPS URL.
 
 ## Current blockers
-- Public HTTPS publication requires the user's Replit Publish action.
+- The public P0 demo is live. Re-publish to include the latest AgenticOrg route;
+  the current deployment predates that merge.
 - AgenticOrg invocation requires confirmation of safe provider tool permissions
   and a current persisted evaluation. Run persistence remains a follow-up.
 - Pine Labs UAT requires its own credentials/contracts; AgenticOrg's key is not
