@@ -13,16 +13,19 @@ export async function POST(request: Request) {
   const parsed = demandInput.safeParse(body);
   if (!parsed.success) return fail('INVALID_INPUT','Invalid demand',400,parsed.error.flatten());
   if (!validFutureExpiry(parsed.data.expiresAt)) return fail('INVALID_EXPIRY','Expiry must be within 30 days',400);
+  if (Date.parse(parsed.data.deliveryDeadline) <= Date.now()) return fail('INVALID_DELIVERY_DEADLINE','Delivery deadline must be in the future',400);
   const { data, error } = await auth.db!.from('buyer_demands').insert({
     buyer_id: auth.user!.id, merchant_id: parsed.data.merchantId, product_id: parsed.data.productId,
     quantity: parsed.data.quantity, allocated_existing_stock: 0,
     expires_at: parsed.data.expiresAt, idempotency_key: key,
-  }).select('id,buyer_id,merchant_id,product_id,quantity,allocated_existing_stock,status,expires_at,created_at').single();
+    max_unit_price_paise: parsed.data.maxUnitPricePaise, delivery_deadline: parsed.data.deliveryDeadline,
+    fulfillment_terms: parsed.data.fulfillmentTerms,
+  }).select('id,buyer_id,merchant_id,product_id,quantity,allocated_existing_stock,max_unit_price_paise,delivery_deadline,fulfillment_terms,status,expires_at,created_at').single();
   if (error?.code === '23505') {
-    const previous = await auth.db!.from('buyer_demands').select('id,buyer_id,merchant_id,product_id,quantity,allocated_existing_stock,status,expires_at,created_at').eq('buyer_id',auth.user!.id).eq('idempotency_key',key).single();
+    const previous = await auth.db!.from('buyer_demands').select('id,buyer_id,merchant_id,product_id,quantity,allocated_existing_stock,max_unit_price_paise,delivery_deadline,fulfillment_terms,status,expires_at,created_at').eq('buyer_id',auth.user!.id).eq('idempotency_key',key).single();
     if (previous.error || !previous.data) return fail('DB_ERROR','Could not resolve idempotent request',500);
     const p = previous.data;
-    if (p.merchant_id !== parsed.data.merchantId || p.product_id !== parsed.data.productId || p.quantity !== parsed.data.quantity || p.expires_at !== parsed.data.expiresAt)
+    if (p.merchant_id !== parsed.data.merchantId || p.product_id !== parsed.data.productId || p.quantity !== parsed.data.quantity || p.expires_at !== parsed.data.expiresAt || p.max_unit_price_paise !== parsed.data.maxUnitPricePaise || p.delivery_deadline !== parsed.data.deliveryDeadline || p.fulfillment_terms !== parsed.data.fulfillmentTerms)
       return fail('IDEMPOTENCY_CONFLICT','Key was used with a different demand',409);
     return ok(p);
   }
