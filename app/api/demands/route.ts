@@ -1,6 +1,7 @@
 import { authenticated } from '@/lib/api/auth';
 import { fail, ok } from '@/lib/shared/api';
 import { demandInput, validFutureExpiry } from '@/lib/shared/validation';
+import { sameInstant } from '@/lib/shared/time';
 
 export async function POST(request: Request) {
   const auth = await authenticated();
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     const previous = await auth.db!.from('buyer_demands').select('id,buyer_id,merchant_id,product_id,quantity,allocated_existing_stock,max_unit_price_paise,delivery_deadline,fulfillment_terms,status,expires_at,created_at').eq('buyer_id',auth.user!.id).eq('idempotency_key',key).single();
     if (previous.error || !previous.data) return fail('DB_ERROR','Could not resolve idempotent request',500);
     const p = previous.data;
-    if (p.merchant_id !== parsed.data.merchantId || p.product_id !== parsed.data.productId || p.quantity !== parsed.data.quantity || p.expires_at !== parsed.data.expiresAt || p.max_unit_price_paise !== parsed.data.maxUnitPricePaise || p.delivery_deadline !== parsed.data.deliveryDeadline || p.fulfillment_terms !== parsed.data.fulfillmentTerms)
+    if (p.merchant_id !== parsed.data.merchantId || p.product_id !== parsed.data.productId || p.quantity !== parsed.data.quantity || !sameInstant(p.expires_at,parsed.data.expiresAt) || p.max_unit_price_paise !== parsed.data.maxUnitPricePaise || !sameInstant(p.delivery_deadline,parsed.data.deliveryDeadline) || p.fulfillment_terms !== parsed.data.fulfillmentTerms)
       return fail('IDEMPOTENCY_CONFLICT','Key was used with a different demand',409);
     return ok(p);
   }

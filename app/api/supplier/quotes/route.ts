@@ -1,4 +1,5 @@
 import { authenticated } from '@/lib/api/auth';
+import { sameInstant } from '@/lib/shared/time';
 import { databaseFailure } from '@/lib/api/errors';
 import { fail, ok } from '@/lib/shared/api';
 import { quoteInput, validFutureExpiry } from '@/lib/shared/validation';
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     const previous = await auth.db!.from('supplier_quotes').select(fields).eq('supplier_id',v.supplierId).eq('idempotency_key',key).single();
     if (previous.error || !previous.data) return databaseFailure(previous.error ?? error);
     const q = previous.data;
-    if (q.pool_id !== v.poolId || q.exact_sku_id !== v.exactSkuId || q.min_order_quantity !== v.minOrderQuantity || q.max_available_quantity !== v.maxAvailableQuantity || q.quoted_unit_price_paise !== v.quotedUnitPricePaise || q.freight_paise !== v.freightPaise || q.handling_paise !== v.handlingPaise || q.delivery_deadline !== v.deliveryDeadline || q.expires_at !== v.expiresAt) return fail('IDEMPOTENCY_CONFLICT','Key was used with different quote terms',409);
+    if (q.pool_id !== v.poolId || q.exact_sku_id !== v.exactSkuId || q.min_order_quantity !== v.minOrderQuantity || q.max_available_quantity !== v.maxAvailableQuantity || q.quoted_unit_price_paise !== v.quotedUnitPricePaise || q.freight_paise !== v.freightPaise || q.handling_paise !== v.handlingPaise || !sameInstant(q.delivery_deadline,v.deliveryDeadline) || !sameInstant(q.expires_at,v.expiresAt)) return fail('IDEMPOTENCY_CONFLICT','Key was used with different quote terms',409);
     return ok(q);
   }
   if (error) return databaseFailure(error,'Could not submit quote');
