@@ -12,7 +12,7 @@ Do not submit the development preview as a published production URL.
 - `npm ci`: passed.
 - `npm run build`: passed after the demo UI was added.
 - `npm run lint`: passed.
-- `npm test`: 3 files, 10 tests passed.
+- `npm test`: 5 files, 17 tests passed after the AgenticOrg branch merge.
 - Unit tests cover aggregation, pricing, and timestamp normalization for
   idempotent retries. Separate live API checks cover the cloud flow below.
 
@@ -54,6 +54,8 @@ read endpoints below have not all been exercised end-to-end.
 - `GET|POST /api/merchant/restock`.
 - `GET /api/pools/:id`.
 - `POST /api/pools/:id/evaluate`, `GET /api/pools/:id/evaluation`.
+- `POST /api/pools/:id/agent-review` (ADMIN-only advisory provider route;
+  actual provider invocation remains unverified).
 - `GET|POST /api/supplier/quotes`, `GET /api/supplier/quotes/:id`,
   `POST /api/supplier/quotes/:id/counteroffer`.
 - `POST /api/proposals`, `GET /api/proposals/:id`,
@@ -101,10 +103,19 @@ claim that real humans consented to procurement.
   version and terms evaluated at the time.
 
 ## External integration evidence
-- AgenticOrg: Abhay's `feat/abhay-agent` branch was inspected. It contains a
-  genuine server transport and workflow helpers, but its handoff states it is
-  not called by a backend route. No provider API key is configured here; no real
-  provider run ID/tool events are claimed and no simulated run was substituted.
+- AgenticOrg: `feat/agent-route` was fast-forward merged into `feat/raman-core`
+  at `a584667`, preserving the existing demo changes and teammate history.
+  The server-side API key and agent ID are configured securely in Replit.
+  Build, lint, and 17 tests pass. Invalid pool ID, anonymous access, and BUYER
+  access to the advisory route returned 400, 401, and 403 respectively.
+- The provider's read-only agent-details endpoint returned 401 with this key;
+  the teammate handoff documents run-only key scope, so this does not establish
+  that the run key is invalid. Current agent mode/tools could not be inspected.
+- The teammate handoff warns that checkout write tools were enabled at agent
+  creation. No new provider invocation was performed without confirmation
+  that those permissions are removed or safely disabled. The imported route
+  returns advisory output only; it does not persist provider run IDs/tool events.
+  No real run ID or trace from this deployment is claimed.
 - Pine Labs: no UAT checkout or server-side payment verification verified.
 - Pine Labs client credentials are not configured in this workspace.
 - PhonePe QR: not treated as Pine Labs or verified payment.
@@ -134,8 +145,10 @@ claim that real humans consented to procurement.
 
 ## Current blockers
 - Public HTTPS publication requires the user's Replit Publish action.
-- Real AgenticOrg execution and Pine Labs UAT require their respective
-  credentials/contracts; neither is represented as working.
+- AgenticOrg invocation requires confirmation of safe provider tool permissions
+  and a current persisted evaluation. Run persistence remains a follow-up.
+- Pine Labs UAT requires its own credentials/contracts; AgenticOrg's key is not
+  a payment credential and does not establish a checkout integration.
 - TEST records are not LIVE commerce, real-human consent, or traction.
 - The database password was exposed in chat; rotate it through the project
   owner's secure database settings after the release, updating dependent
