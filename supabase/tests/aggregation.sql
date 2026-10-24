@@ -2,6 +2,12 @@ begin;
 insert into auth.users(id,instance_id,aud,role,email,encrypted_password,created_at,updated_at)
 values ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000000','authenticated','authenticated','buyer-test@example.invalid','x',now(),now()),
        ('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000000','authenticated','authenticated','merchant-test@example.invalid','x',now(),now());
+do $$ begin
+  if (select count(*) from public.actor_profiles where role='BUYER' and user_id in ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002')) <> 2 then
+    raise exception 'auth trigger did not create buyer profiles';
+  end if;
+end $$;
+update public.actor_profiles set role='MERCHANT' where user_id='00000000-0000-0000-0000-000000000002';
 insert into public.zones(id,name) values('00000000-0000-0000-0000-000000000010','Test zone');
 insert into public.products(id,name,unit) values('00000000-0000-0000-0000-000000000020','Test rice','kg');
 insert into public.merchants(id,owner_id,zone_id,name) values('00000000-0000-0000-0000-000000000030','00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000010','Test merchant');
@@ -32,6 +38,15 @@ do $$ begin
   end if;
   if (select count(*) from public.merchant_restock_requests) <> 0 then
     raise exception 'merchant restock leaked to buyer';
+  end if;
+end $$;
+set local request.jwt.claim.sub = '00000000-0000-0000-0000-000000000002';
+do $$ begin
+  if (select count(*) from public.buyer_demands) <> 0 then
+    raise exception 'buyer demand leaked to merchant';
+  end if;
+  if (select count(*) from public.merchant_restock_requests) <> 1 then
+    raise exception 'merchant cannot read own restock';
   end if;
 end $$;
 reset role;

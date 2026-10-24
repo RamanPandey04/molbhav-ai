@@ -22,6 +22,8 @@ POST writes require `Idempotency-Key` header (8 to 128 characters). A matching r
 
 Demand body: `{ "merchantId": "uuid", "productId": "uuid", "quantity": 10, "expiresAt": "2026-10-25T12:00:00Z" }`. The server sets the buyer ID from Supabase Auth and stock allocation to zero. Restock body has the same fields. The server verifies the merchant belongs to the caller.
 
+New Supabase Auth users receive a `BUYER` profile. Merchant access requires a trusted administrator to change the profile role to `MERCHANT` and create an owned merchant row. Client requests cannot assign roles.
+
 Example success: `{ "data": { "id": "uuid", "merchant_id": "uuid", "product_id": "uuid", "quantity": 10, "status": "ACTIVE", "expires_at": "2026-10-25T12:00:00Z", "created_at": "..." }, "error": null }`. Example failure: `{ "data": null, "error": { "code": "UNAUTHENTICATED", "message": "Sign in required" } }`.
 
 ## Tool contracts for Abhay

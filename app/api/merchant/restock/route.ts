@@ -10,6 +10,7 @@ async function ownsMerchant(db: NonNullable<Awaited<ReturnType<typeof authentica
 export async function GET(request: Request) {
   const auth = await authenticated();
   if (auth.error) return auth.error;
+  if (auth.role !== 'MERCHANT') return fail('FORBIDDEN','Merchant role required',403);
   const merchantId = new URL(request.url).searchParams.get('merchantId');
   if (!merchantId || !uuid.safeParse(merchantId).success) return fail('INVALID_ID','Valid merchantId is required',400);
   if (!await ownsMerchant(auth.db!,auth.user!.id,merchantId)) return fail('FORBIDDEN','Merchant access denied',403);
@@ -21,6 +22,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await authenticated();
   if (auth.error) return auth.error;
+  if (auth.role !== 'MERCHANT') return fail('FORBIDDEN','Merchant role required',403);
   const key = request.headers.get('Idempotency-Key');
   if (!key || key.length < 8 || key.length > 128) return fail('INVALID_IDEMPOTENCY_KEY','Idempotency-Key must be 8-128 characters',400);
   let body: unknown;

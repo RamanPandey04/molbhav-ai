@@ -5,6 +5,7 @@ import { demandInput, validFutureExpiry } from '@/lib/shared/validation';
 export async function POST(request: Request) {
   const auth = await authenticated();
   if (auth.error) return auth.error;
+  if (auth.role !== 'BUYER') return fail('FORBIDDEN','Buyer role required',403);
   const key = request.headers.get('Idempotency-Key');
   if (!key || key.length < 8 || key.length > 128) return fail('INVALID_IDEMPOTENCY_KEY','Idempotency-Key must be 8-128 characters',400);
   let body: unknown;
