@@ -32,9 +32,9 @@ body {
 h1 { font-size: clamp(40px, 7vw, 72px); font-weight: 800; letter-spacing: -.04em; line-height: 1; margin: 12px 0 8px; color: var(--deep); }
 h1 span { color: var(--accent); }
 .sub { color: var(--muted); max-width: 54ch; }
-.grid { display: grid; gap: 14px; grid-template-columns: 1fr; margin-bottom: 14px; }
+.grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); margin-bottom: 14px; }
 @media (min-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } .wide { grid-column: 1 / -1; } }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; overflow-wrap: anywhere; }
 .card h2 { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; }
 .card h2 i { font: normal 600 12px var(--font-geist-mono); color: var(--accent); }
 .card h2 small { margin-left: auto; font: 600 10px var(--font-geist-mono); letter-spacing: .1em; color: var(--deep); border: 1px solid var(--deep); padding: 2px 6px; border-radius: 3px; }
@@ -53,7 +53,7 @@ h1 span { color: var(--accent); }
 .note { font-size: 12px; color: var(--muted); }
 .mono, code { font-family: var(--font-geist-mono); word-break: break-all; }
 .err { color: var(--bad); font-size: 13px; }
-pre { font: 11.5px/1.45 var(--font-geist-mono); background: #efe7d6; padding: 10px; border-radius: 4px; overflow: auto; max-height: 280px; }
+pre { font: 11.5px/1.45 var(--font-geist-mono); background: #efe7d6; padding: 10px; border-radius: 4px; overflow: auto; max-height: 280px; min-width: 0; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; }
 details { border-left: 3px solid var(--good); padding: 4px 10px; margin-top: 6px; }
 details.bad { border-color: var(--bad); }
 summary { cursor: pointer; font: 12.5px var(--font-geist-mono); }

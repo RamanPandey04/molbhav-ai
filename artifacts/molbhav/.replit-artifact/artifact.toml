@@ -8,15 +8,15 @@ router = "path"
 
 [[services]]
 name = "web"
-paths = ["/"]
+paths = ["/", "/_next/hmr"]
 localPort = 23932
 
 [services.development]
-run = "npm --prefix ../../recovered/molbhav-next run dev -- --hostname 0.0.0.0 --port $PORT"
+run = "cd ../../recovered/molbhav-next && exec node node_modules/next/dist/bin/next dev --hostname 0.0.0.0 --port $PORT"
 
 [services.production]
 build = ["sh", "-c", "if [ -d recovered/molbhav-next ]; then cd recovered/molbhav-next; else cd ../../recovered/molbhav-next; fi; npm ci --no-audit --no-fund && npm run build"]
-run = ["sh", "-c", "if [ -d recovered/molbhav-next ]; then cd recovered/molbhav-next; else cd ../../recovered/molbhav-next; fi; npm run start -- --hostname 0.0.0.0 --port $PORT"]
+run = ["sh", "-c", "if [ -d recovered/molbhav-next ]; then cd recovered/molbhav-next; else cd ../../recovered/molbhav-next; fi; exec node node_modules/next/dist/bin/next start --hostname 0.0.0.0 --port $PORT"]
 
 [services.env]
 PORT = "23932"

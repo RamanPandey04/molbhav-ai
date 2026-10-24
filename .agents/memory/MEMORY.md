@@ -1,1 +1,2 @@
 - [Artifact command directories](artifact-command-directories.md) — managed development commands run from the artifact directory, not the workspace root.
+- [Preview hydration](framework-preview-hydration.md) — healthy Next.js HTML and APIs do not prove that preview browser controls initialized.

@@ -6,6 +6,7 @@ import { createClient, type Session, type SupabaseClient } from "@supabase/supab
 type ApiErr = { code: string; message: string; details?: unknown };
 type ApiRes = { data: unknown; error: ApiErr | null };
 type Product = { id: string; name: string; unit: string };
+type Merchant = { id: string; name: string; owner_id: string };
 type Log = { label: string; status: number | null; body: ApiRes | null; err?: string };
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -44,6 +45,8 @@ export default function Home() {
   const [log, setLog] = useState<Log[]>([]);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [prodErr, setProdErr] = useState("");
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [role, setRole] = useState("");
 
   const [productId, setProductId] = useState("");
   const [merchantId, setMerchantId] = useState("");
@@ -87,6 +90,31 @@ export default function Home() {
     return () => data.subscription.unsubscribe();
   }, [supabase]);
 
+  useEffect(() => {
+    if (!supabase || !session?.user.id) {
+      setMerchants([]);
+      setRole("");
+      return;
+    }
+    let cancelled = false;
+    const userId = session.user.id;
+    void Promise.all([
+      supabase.from("merchants").select("id,name,owner_id").eq("active", true).order("name"),
+      supabase.from("actor_profiles").select("role").eq("user_id", userId).maybeSingle(),
+      supabase.from("suppliers").select("id").eq("owner_id", userId).eq("active", true).limit(1),
+    ]).then(([stores, profile, suppliers]) => {
+      if (cancelled) return;
+      const rows = (stores.data ?? []) as Merchant[];
+      setMerchants(rows);
+      setRole(profile.data?.role ?? "");
+      const own = rows.find(m => m.owner_id === userId);
+      if (own) setMerchantId(own.id);
+      else if (rows.length === 1) setMerchantId(rows[0].id);
+      if (suppliers.data?.[0]) setSupplierId(suppliers.data[0].id);
+    });
+    return () => { cancelled = true; };
+  }, [supabase, session?.user.id]);
+
   async function loadProducts() {
     setProdErr("");
     setProducts(null);
@@ -123,10 +151,25 @@ export default function Home() {
 
   async function signIn() {
     if (!supabase) return;
+    setBusy("Sign in");
     setAuthMsg("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setAuthMsg(error ? error.message : "Signed in.");
-    setPassword("");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      setAuthMsg(error ? error.message : "Signed in.");
+      if (!error) setPassword("");
+    } catch { setAuthMsg("Could not sign in. Please try again."); }
+    finally { setBusy(null); }
+  }
+  async function signUp() {
+    if (!supabase) return;
+    setBusy("Create buyer account");
+    setAuthMsg("");
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      setAuthMsg(error ? error.message : data.session ? "Buyer account created." : "Check your email to confirm your account, then sign in.");
+      if (!error) setPassword("");
+    } catch { setAuthMsg("Could not create an account. Please try again."); }
+    finally { setBusy(null); }
   }
   async function signOut() {
     const result = await supabase?.auth.signOut();
@@ -232,14 +275,17 @@ export default function Home() {
             <p className="err">Supabase disconnected: NEXT_PUBLIC_SUPABASE_URL / PUBLISHABLE_KEY not set. Protected actions will fail.</p>
           ) : session ? (
             <>
-              <p>Signed in as <b>{session.user.email}</b></p>
+              <p>Signed in as <b>{session.user.email}</b>{role && <> · {role}</>}</p>
               <button className="btn ghost" onClick={signOut}>Sign out</button>
             </>
           ) : (
             <>
               <Field label="Email" value={email} set={setEmail} type="email" />
               <Field label="Password" value={password} set={setPassword} type="password" />
-              <button className="btn" onClick={signIn} disabled={!email || !password}>Sign in</button>
+              <div className="btns">
+                <button className="btn" onClick={signIn} disabled={!!busy || !email || !password}>{busy === "Sign in" ? "Signing in…" : "Sign in"}</button>
+                <button className="btn ghost" onClick={signUp} disabled={!!busy || !email || password.length < 8}>Create buyer account</button>
+              </div>
             </>
           )}
           {authMsg && <p className="note">{authMsg}</p>}
@@ -262,6 +308,12 @@ export default function Home() {
             </label>
           )}
           <Field label="Product ID" value={productId} set={setProductId} />
+          {merchants.length > 0 && <label className="fld"><span>Merchant</span>
+            <select value={merchantId} onChange={e => setMerchantId(e.target.value)}>
+              <option value="">Select…</option>
+              {merchants.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </label>}
           <Field label="Merchant ID" value={merchantId} set={setMerchantId} hint="(uuid)" />
         </section>
 

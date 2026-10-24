@@ -2,12 +2,14 @@
 
 AI-powered collective procurement for neighbourhood commerce.
 
-## Imported scope
+## Imported and recovered scope
 
-The imported branch contains only the Create Next App starter homepage at `/`.
-Its README mentions backend work on another branch, but that implementation is
-not present in this import. Do not invent procurement, auth, or database flows
-as part of the port.
+The original import contained only the starter homepage and was preserved as
+the Vite artifact. The actual backend was subsequently recovered separately
+from `feat/raman-core`; it is Next.js and must not be converted to Vite.
+The existing Molbhav Supabase project is now connected and the three recovered
+migrations applied. Live P0 checks use explicitly labelled TEST actors, never
+claimed as external users, LIVE transactions, or real-human consent.
 
 ## Run & Operate
 

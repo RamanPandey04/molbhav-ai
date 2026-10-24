@@ -1,6 +1,7 @@
 import { authenticated } from '@/lib/api/auth';
 import { fail, ok } from '@/lib/shared/api';
 import { restockInput, uuid, validFutureExpiry } from '@/lib/shared/validation';
+import { sameInstant } from '@/lib/shared/time';
 
 async function ownsMerchant(db: NonNullable<Awaited<ReturnType<typeof authenticated>>['db']>, userId: string, merchantId: string) {
   const { data, error } = await db.from('merchants').select('id').eq('id',merchantId).eq('owner_id',userId).eq('active',true).maybeSingle();
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
     const previous = await auth.db!.from('merchant_restock_requests').select('id,merchant_id,product_id,quantity,needed_by,status,expires_at,created_at').eq('merchant_id',parsed.data.merchantId).eq('idempotency_key',key).single();
     if (previous.error || !previous.data) return fail('DB_ERROR','Could not resolve idempotent request',500);
     const p = previous.data;
-    if (p.product_id !== parsed.data.productId || p.quantity !== parsed.data.quantity || p.expires_at !== parsed.data.expiresAt || p.needed_by !== parsed.data.neededBy) return fail('IDEMPOTENCY_CONFLICT','Key was used with a different restock request',409);
+    if (p.product_id !== parsed.data.productId || p.quantity !== parsed.data.quantity || !sameInstant(p.expires_at,parsed.data.expiresAt) || !sameInstant(p.needed_by,parsed.data.neededBy)) return fail('IDEMPOTENCY_CONFLICT','Key was used with a different restock request',409);
     return ok(p);
   }
   if (error) return fail(error.code === '23503' ? 'INVALID_REFERENCE' : 'DB_ERROR','Could not create restock request',error.code === '23503' ? 400 : 500);
