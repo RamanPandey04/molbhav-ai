@@ -1,0 +1,1 @@
+- [Artifact command directories](artifact-command-directories.md) — managed development commands run from the artifact directory, not the workspace root.

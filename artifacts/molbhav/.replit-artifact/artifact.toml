@@ -1,27 +1,22 @@
 kind = "web"
 previewPath = "/"
 title = "Molbhav.AI"
-description = "The imported Molbhav.AI web app for collective neighbourhood procurement, preserving the starter homepage available in the imported branch."
+description = "Recovered Next.js procurement demo. The prior Vite source is preserved unchanged."
 version = "1.0.0"
 id = "artifacts/molbhav"
 router = "path"
 
 [[services]]
 name = "web"
-paths = [ "/" ]
+paths = ["/"]
 localPort = 23932
 
 [services.development]
-run = "pnpm --filter @workspace/molbhav run dev"
+run = "npm --prefix ../../recovered/molbhav-next run dev -- --hostname 0.0.0.0 --port $PORT"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/molbhav", "run", "build" ]
-serve = "static"
-publicDir = "artifacts/molbhav/dist/public"
-
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+build = ["sh", "-c", "if [ -d recovered/molbhav-next ]; then cd recovered/molbhav-next; else cd ../../recovered/molbhav-next; fi; npm ci --no-audit --no-fund && npm run build"]
+run = ["sh", "-c", "if [ -d recovered/molbhav-next ]; then cd recovered/molbhav-next; else cd ../../recovered/molbhav-next; fi; npm run start -- --hostname 0.0.0.0 --port $PORT"]
 
 [services.env]
 PORT = "23932"
