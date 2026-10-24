@@ -122,3 +122,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; letter-spacing:
 .wrap summary { cursor: pointer; font: 12.5px var(--font-geist-mono); }
 .wrap .skel { height: 38px; border-radius: 4px; background: linear-gradient(90deg, #ece3d1, #f7f1e5, #ece3d1); background-size: 200% 100%; animation: sk 1.2s infinite linear; }
 @keyframes sk { to { background-position: -200% 0; } }
+
+@media print {
+  .demo-print-hide { display: none !important; }
+}

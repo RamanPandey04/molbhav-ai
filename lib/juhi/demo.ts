@@ -45,8 +45,8 @@ export interface DemoEvaluation {
 
 /** Deterministic pedagogical scenario; these outputs are never real quotes. */
 export function evaluateDemo(input: {
-  buyerUnits: number; independentRestock: number; freightIncreasePaise: number; kiranaApproved: boolean;
-  buyerApproved?: boolean; supplierApproved?: boolean;
+  buyerUnits: number; independentRestock: number; freightIncreasePaise: number;
+  offerExpired?: boolean;
   suppliers?: readonly DemoSupplier[];
 }): DemoEvaluation {
   const buyerUnits = Math.max(0, Math.floor(input.buyerUnits));
@@ -60,15 +60,16 @@ export function evaluateDemo(input: {
   const eligibleQuotes=suppliers.filter((s,i)=>supplierScores[i].qualified);
   const best=eligibleQuotes.map(s=>({s,landed:supplierScores.find(c=>c.supplierId===s.id)!.landedUnitPaise})).sort((a,b)=>a.landed-b.landed)[0];
   const savingsPerUnitPaise=best?DEMO_SAMPLE.baselinePurchaseCostPaise-best.landed:null;
-  const humansApproved=(input.buyerApproved??true)&&input.kiranaApproved&&(input.supplierApproved??true);
-  const decision:DemoDecision=!best||savingsPerUnitPaise!<=0?"NO_DEAL":!humansApproved?"BLOCKED":"PROPOSE";
+  // The decision engine only decides whether terms are viable. Human decisions
+  // are tracked separately in demo-payments.ts and never affect this result.
+  const decision:DemoDecision=input.offerExpired?"BLOCKED":!best||savingsPerUnitPaise!<=0?"NO_DEAL":"PROPOSE";
   const totalProcurementSavingsPaise=best?Math.max(0,savingsPerUnitPaise!)*combinedUnits:0;
   const consumerSavingsPaise=!!best&&savingsPerUnitPaise!>0?(DEMO_SAMPLE.retailPricePaise-DEMO_SAMPLE.consumerPricePaise)*buyerUnits:0;
   const reasons:string[]=[];
+  if(input.offerExpired) reasons.push("Sample proposal expired. It cannot be accepted.");
   if(!best) reasons.push("Combined quantity does not meet a qualifying supplier MOQ or stock limit.");
   if(best&&savingsPerUnitPaise!<=0) reasons.push("Landed cost is not below the existing procurement baseline.");
-  if(best&&savingsPerUnitPaise!>0&&!humansApproved) reasons.push("Buyer, kirana and supplier sample approvals are required; at least one is still pending or rejected.");
-  if(best&&savingsPerUnitPaise!>0&&input.kiranaApproved) reasons.push("Illustrative terms are viable; this simulation does not create a real proposal.");
+  if(best&&savingsPerUnitPaise!>0) reasons.push("The sample calculation is viable. Separate human decisions are still required; this simulation does not create a real proposal.");
   const projectedBenefit=Math.max(0,totalProcurementSavingsPaise-consumerSavingsPaise);
   return {
     buyerUnits,independentRestock,combinedUnits,eligibleQuotes,supplierScores,
