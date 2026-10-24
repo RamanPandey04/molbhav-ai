@@ -2,6 +2,7 @@ import { authenticated } from '@/lib/api/auth';
 import { fail, ok } from '@/lib/shared/api';
 import { demandInput, validFutureExpiry } from '@/lib/shared/validation';
 import { sameInstant } from '@/lib/shared/time';
+import { attachPool } from '@/lib/api/pool-link';
 
 export async function POST(request: Request) {
   const auth = await authenticated();
@@ -13,6 +14,8 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return fail('INVALID_JSON','Invalid JSON body',400); }
   const parsed = demandInput.safeParse(body);
   if (!parsed.success) return fail('INVALID_INPUT','Invalid demand',400,parsed.error.flatten());
+  if (auth.dataClass !== 'TEST' && parsed.data.consentConfirmed !== true)
+    return fail('CONSENT_REQUIRED','Confirm your own demand terms and consent before submission',400);
   if (!validFutureExpiry(parsed.data.expiresAt)) return fail('INVALID_EXPIRY','Expiry must be within 30 days',400);
   if (Date.parse(parsed.data.deliveryDeadline) <= Date.now()) return fail('INVALID_DELIVERY_DEADLINE','Delivery deadline must be in the future',400);
   const { data, error } = await auth.db!.from('buyer_demands').insert({
@@ -21,6 +24,7 @@ export async function POST(request: Request) {
     expires_at: parsed.data.expiresAt, idempotency_key: key,
     max_unit_price_paise: parsed.data.maxUnitPricePaise, delivery_deadline: parsed.data.deliveryDeadline,
     fulfillment_terms: parsed.data.fulfillmentTerms,
+    consent_confirmed_at: parsed.data.consentConfirmed ? new Date().toISOString() : null,
   }).select('id,buyer_id,merchant_id,product_id,quantity,allocated_existing_stock,max_unit_price_paise,delivery_deadline,fulfillment_terms,status,expires_at,created_at').single();
   if (error?.code === '23505') {
     const previous = await auth.db!.from('buyer_demands').select('id,buyer_id,merchant_id,product_id,quantity,allocated_existing_stock,max_unit_price_paise,delivery_deadline,fulfillment_terms,status,expires_at,created_at').eq('buyer_id',auth.user!.id).eq('idempotency_key',key).single();
@@ -28,8 +32,8 @@ export async function POST(request: Request) {
     const p = previous.data;
     if (p.merchant_id !== parsed.data.merchantId || p.product_id !== parsed.data.productId || p.quantity !== parsed.data.quantity || !sameInstant(p.expires_at,parsed.data.expiresAt) || p.max_unit_price_paise !== parsed.data.maxUnitPricePaise || !sameInstant(p.delivery_deadline,parsed.data.deliveryDeadline) || p.fulfillment_terms !== parsed.data.fulfillmentTerms)
       return fail('IDEMPOTENCY_CONFLICT','Key was used with a different demand',409);
-    return ok(p);
+    return ok(await attachPool(auth.db!,p));
   }
   if (error) return fail(error.code === '23503' ? 'INVALID_REFERENCE' : 'DB_ERROR','Could not create demand',error.code === '23503' ? 400 : 500);
-  return ok(data,201);
+  return ok(await attachPool(auth.db!,data),201);
 }

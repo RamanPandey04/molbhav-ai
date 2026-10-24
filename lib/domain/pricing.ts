@@ -95,6 +95,7 @@ export function evaluatePricing(input: {
     poolId: input.poolId, poolVersion: input.poolVersion, productId: input.productId, quantity,
     quoteId: best.quote.id, quoteVersion: best.quote.version, supplierId: best.quote.supplier_id,
     exactSkuId: best.quote.exact_sku_id, quotedUnitPricePaise: best.quote.quoted_unit_price_paise,
+    minOrderQuantity: best.quote.min_order_quantity, maxAvailableQuantity: best.quote.max_available_quantity,
     freightPaise: best.quote.freight_paise, handlingPaise: best.quote.handling_paise,
     landedTotalPaise: safe(best.landed), baselineTotalPaise: safe(baselineTotal), savingsPaise: safe(best.savings),
     deliveryDeadline: best.quote.delivery_deadline, quoteExpiresAt: best.quote.expires_at,

@@ -9,8 +9,8 @@ export async function authenticated() {
   const db = await createClient(token);
   const { data, error } = token ? await db.auth.getUser(token) : await db.auth.getUser();
   if (error || !data.user) return { error: fail('UNAUTHENTICATED', 'Sign in required', 401) };
-  const profile = await db.from('actor_profiles').select('role').eq('user_id',data.user.id).maybeSingle();
+  const profile = await db.from('actor_profiles').select('role,data_class').eq('user_id',data.user.id).maybeSingle();
   if (profile.error) return { error: fail('DB_ERROR', 'Could not load actor role', 500) };
   if (!profile.data) return { error: fail('FORBIDDEN', 'Actor role is not provisioned', 403) };
-  return { db, user: data.user, role: profile.data.role };
+  return { db, user: data.user, role: profile.data.role, dataClass: profile.data.data_class };
 }

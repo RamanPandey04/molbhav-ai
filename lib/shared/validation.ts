@@ -10,6 +10,7 @@ export const demandInput = z.object({
   maxUnitPricePaise: z.number().int().positive().max(1_000_000_000),
   deliveryDeadline: z.iso.datetime({ offset: true }),
   fulfillmentTerms: z.string().trim().min(1).max(500),
+  consentConfirmed: z.boolean().optional(),
 });
 export const restockInput = z.object({
   merchantId: uuid,

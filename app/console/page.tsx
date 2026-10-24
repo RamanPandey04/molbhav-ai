@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
+import { type Session, type SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 type ApiErr = { code: string; message: string; details?: unknown };
 type ApiRes = { data: unknown; error: ApiErr | null };
@@ -36,7 +37,7 @@ function Field({ label, value, set, type = "text", hint }: { label: string; valu
 }
 
 export default function Home() {
-  const supabase = useMemo<SupabaseClient | null>(() => (URL_ && KEY ? createClient(URL_, KEY) : null), []);
+  const supabase = useMemo<SupabaseClient | null>(() => (URL_ && KEY ? createBrowserClient(URL_, KEY) : null), []);
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
