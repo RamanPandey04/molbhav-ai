@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Molbhav.AI"
+description = "The imported Molbhav.AI web app for collective neighbourhood procurement, preserving the starter homepage available in the imported branch."
+version = "1.0.0"
+id = "artifacts/molbhav"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23932
+
+[services.development]
+run = "pnpm --filter @workspace/molbhav run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/molbhav", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/molbhav/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23932"
+BASE_PATH = "/"

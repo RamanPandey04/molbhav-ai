@@ -1,45 +1,31 @@
-# [Project name]
+# Molbhav.AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+AI-powered collective procurement for neighbourhood commerce.
+
+## Imported scope
+
+The imported branch contains only the Create Next App starter homepage at `/`.
+Its README mentions backend work on another branch, but that implementation is
+not present in this import. Do not invent procurement, auth, or database flows
+as part of the port.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Start the managed workflow `artifacts/molbhav: web` for the web app.
+- `pnpm --filter @workspace/molbhav run typecheck` checks the frontend.
+- `pnpm --filter @workspace/molbhav test` runs homepage parity tests.
+- Artifact workflows provide `PORT` and `BASE_PATH`; there is intentionally no root dev command.
+- The current homepage needs no secrets or database.
 
-## Stack
+## Stack and layout
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- pnpm workspace with React, Vite, TypeScript, and Tailwind CSS v4.
+- `artifacts/molbhav/` contains the migrated frontend.
+- `.migration-backup/` preserves the original imported source, including the unused Supabase configuration.
+- `artifacts/api-server/`, `artifacts/mockup-sandbox/`, and `lib/` are pre-existing workspace scaffolds, not implemented product features.
 
-## Where things live
+## Migration constraints
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Preserve the imported UI, copy, links, assets, responsive behavior, and system dark mode; this is not a redesign.
+- Supabase is mentioned in the original project documentation. No database was migrated or replaced.
+- The original Vercel and Next.js logos and external links are intentional page content, not runtime dependencies.
