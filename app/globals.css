@@ -1,3 +1,8 @@
+@import "@fontsource/rozha-one/index.css";
+@import "@fontsource/hind/400.css";
+@import "@fontsource/hind/500.css";
+@import "@fontsource/hind/600.css";
+@import "@fontsource/hind/700.css";
 @import "tailwindcss";
 
 :root {
@@ -6,9 +11,34 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-background: var(--color-paper);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "Hind", system-ui, sans-serif;
+  --font-display: "Rozha One", Georgia, serif;
+  --color-sign: #3A2BB8;
+  --color-sign-deep: #271C86;
+  --color-sign-wash: #ECE9FF;
+  --color-turmeric: #F5B301;
+  --color-turmeric-deep: #8A5E00;
+  --color-turmeric-wash: #FFF4D6;
+  --color-pink: #E0107A;
+  --color-pink-deep: #B00A60;
+  --color-pink-wash: #FFE1EF;
+  --color-ink: #17143A;
+  --color-ink-soft: #5C5A78;
+  --color-ink-faint: #9C9AB3;
+  --color-paper: #F6F6FA;
+  --color-paper-raised: #FFFFFF;
+  --color-paper-rule: #E8E8F0;
+  --color-stamp: #C7231F;
+  --color-stamp-wash: #FFE4E1;
+  --color-leaf: #00857A;
+  --color-leaf-wash: #D5F3EE;
+  --color-slate-warn: #7A5200;
+  --radius-tag: 12px;
+  --shadow-card: 0 1px 2px rgba(23,20,58,.04), 0 8px 24px -12px rgba(23,20,58,.14);
+  --shadow-slip: 0 1px 2px rgba(23,20,58,.04), 0 8px 24px -12px rgba(23,20,58,.14);
+  --shadow-pop: 0 1px 2px rgba(23,20,58,.06);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -20,7 +50,28 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+html { -webkit-text-size-adjust: 100%; font-size: 17px; }
+body { font-feature-settings: "tnum" 1; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; letter-spacing: 0; }
+:focus-visible { outline: 3px solid rgba(58, 43, 184, .5); outline-offset: 2px; border-radius: 8px; }
+
+@layer components {
+  .btn, .btn-primary, .btn-yellow, .btn-ghost, .btn-danger {
+    @apply inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-5 text-[17px] font-semibold transition-colors
+      disabled:cursor-not-allowed disabled:opacity-45;
+  }
+  .btn-primary { @apply bg-ink text-white hover:bg-sign-deep; }
+  .btn-yellow { @apply bg-turmeric text-ink hover:bg-[#E6A700]; }
+  .btn-ghost { @apply border border-ink/20 bg-white text-ink hover:bg-ink/[.04]; }
+  .btn-danger { @apply border border-stamp/40 bg-white text-stamp hover:bg-stamp-wash; }
+  .field { @apply block w-full min-h-[52px] rounded-xl border border-ink/20 bg-white px-4 text-[17px] text-ink placeholder:text-ink-faint focus:border-sign focus:outline-none focus:ring-4 focus:ring-sign/15; }
+  .field-label { @apply mb-1.5 block text-[15px] font-semibold text-ink; }
+  .field-hint { @apply mt-1.5 text-[15px] text-ink-soft; }
+  .field-error { @apply mt-1.5 text-[15px] font-semibold text-stamp; }
+  .card { @apply rounded-2xl border border-ink/[.07] bg-white p-5 shadow-card; }
 }
